@@ -1,6 +1,7 @@
 ﻿import React from 'react';
 import styled from '@emotion/styled';
 
+
 const Container = styled.div`
   background-color: #ededed;
   height: 100%;
@@ -76,6 +77,7 @@ const WeatherApp = () => {
                     <Temperature>
                         23 <Celsius>°C</Celsius>
                     </Temperature>
+                    <CloudyIcon/>
                 </CurrentWeather>
                 <AirFlow>23 m/h</AirFlow>
                 <Rain>48%</Rain>
@@ -84,4 +86,4 @@ const WeatherApp = () => {
     );
 };
 
-export default WeatherApp;
+export default WeatherApp;  
