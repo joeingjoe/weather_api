@@ -1,6 +1,9 @@
 ﻿import React from 'react';
 import styled from '@emotion/styled';
-
+import { ReactComponent as CloudyIcon } from './images/cloudy.svg'
+import { ReactComponent as AirFlowIcon } from './images/airFlow.svg';
+import { ReactComponent as RainIcon } from './images/rain.svg';
+import { ReactComponent as RedoIcon } from './images/redo.svg';
 
 const Container = styled.div`
   background-color: #ededed;

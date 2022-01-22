@@ -5,6 +5,11 @@
       "taskLabel": "工作-weatherApp",
       "appliesTo": "src/weatherApp.js",
       "type": "launch"
+    },
+    {
+      "taskLabel": "工作-day-cloudy",
+      "appliesTo": "src/images/day-cloudy.svg",
+      "type": "launch"
     }
   ]
 }
