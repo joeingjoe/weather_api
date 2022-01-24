@@ -2,10 +2,8 @@
   "ExpandedNodes": [
     "",
     "\\public",
-    "\\src",
-    "\\src\\images\\app-icons",
-    "\\src\\images\\__MACOSX"
+    "\\src"
   ],
-  "SelectedNode": "\\package.json",
+  "SelectedNode": "\\src\\WeatherApp.js",
   "PreviewInSolutionExplorer": false
 }

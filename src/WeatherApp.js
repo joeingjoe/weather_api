@@ -1,4 +1,4 @@
-﻿import React from 'react';
+﻿import React, {useState} from 'react';
 import styled from '@emotion/styled';
 import { ReactComponent as CloudyIcon } from './images/cloudy.svg'
 import { ReactComponent as AirFlowIcon } from './images/airFlow.svg';
@@ -60,6 +60,11 @@ const AirFlow = styled.div`
   font-weight: 300;
   color: #828282;
   margin-bottom: 20px;
+
+  svg {
+    width: 25px;
+    height: auto;
+    margin-right: 30px;
 `;
 
 const Rain = styled.div`
@@ -68,22 +73,104 @@ const Rain = styled.div`
   font-size: 16x;
   font-weight: 300;
   color: #828282;
+
+  svg {
+    width: 25px;
+    height: auto;
+    margin-right: 30px;
 `;
 
+const Cloudy = styled(CloudyIcon)`
+    flex-basis: 30%;
+`
+
+const Redo = styled.div`
+    position: absolute;
+    right: 15px;
+    bottom: 15px;   
+    font-size : 12px;
+    display: inline-flex;
+    align-itmes : flex-end;
+    color : #828282;
+
+    svg{
+        marign-left: 10px;
+        width: 15px;
+        height: 15px;
+        cursor: pointer;
+    }
+`;  
+
 const WeatherApp = () => {
+
+    const [currentWeather, setCurrentWeather] = useState({
+        observationTime: '2022-01-24 12:12:12',
+        locationName: '龍井',
+        description: '雨天',
+        temperature: 18,
+        windSpeed: 0.3,
+        humid: 0.88,
+    }); 
+
+    const handleClick = () =>{
+        fetch(
+            'https://opendata.cwb.gov.tw/api/v1/rest/datastore/O-A0001-001?Authorization=CWB-06D73B14-72A5-4363-B448-78EB292C33F5&locationName=%E9%BE%8D%E4%BA%95'
+        )
+            .then((response) => response.json())
+            .then((data) => {
+                    const locationData = data.records.location[0];
+
+                    const weatherElements = locationData.weatherElement.reduce(
+                        (neededElements, item) => {
+                            if (['WDSD', 'TEMP', 'HUMD'].includes(item.elementName)) {
+                                neededElements[item.elementName] = item.elementValue;
+                            }
+                            return neededElements;
+                        },
+                        {}
+                    );
+
+                    setCurrentWeather ({
+                        observationTime: locationData.time.obsTime,
+                        locationName: locationData.locationName,
+                        description: '雨天',
+                        temperature: weatherElements.TEMP,
+                        windSpeed: weatherElements.WDSD,
+                        humid: weatherElements.HUMD,
+                    });              
+                });
+        };
+
+
     return (
         <Container>
             <WeatherCard>
-                <Location>台北市</Location>
-                <Description>多雲時晴</Description>
+                <Location>{currentWeather.locationName}</Location>
+                <Description>
+                    {currentWeather.description}
+                </Description>
                 <CurrentWeather>
                     <Temperature>
-                        23 <Celsius>°C</Celsius>
+                        {Math.round(currentWeather.temperature)} < Celsius >°C</Celsius>
                     </Temperature>
-                    <CloudyIcon/>
+                    <Cloudy/>
                 </CurrentWeather>
-                <AirFlow>23 m/h</AirFlow>
-                <Rain>48%</Rain>
+                <AirFlow>
+                    <AirFlowIcon />
+                    {currentWeather.windSpeed} m/h
+                    </AirFlow>
+                <Rain>
+                    <RainIcon />
+                    {Math.round( currentWeather.humid * 100)} %
+                    </Rain>
+                <Redo onClick={handleClick}>
+                    最後觀測時間:
+                    {new Intl.DateTimeFormat('zh-TW', {
+                        hour: 'numeric',
+                        minute: 'numeric',
+                    }).format(new Date(currentWeather.observationTime))}{' '}
+                    <RedoIcon />
+                </Redo>
             </WeatherCard>
         </Container>
     );
