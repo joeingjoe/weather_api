@@ -112,48 +112,62 @@ const WeatherApp = () => {
         windSpeed: 0,
         humid: 0.88,
         rainPossibility: 0,
-        comfortability:'',
+        comfortability: '',
+
     });
 
     useEffect(() => {
-        console.log('execute function in useEffect');
-        fetchCurrentWeather();
-        fetchWeatherForecast();
+
+        const fetchData = async () => {
+            const [currentWeather,weatherForecast] = await Promise.all([
+                fetchCurrentWeather(),
+                fetchWeatherForecast(),
+            ]);
+
+            setWeatherElement({
+                ...currentWeather,
+                ...weatherForecast,
+            });
+        };
+
+        fetchData();
+
     },[]);
 
-    const fetchCurrentWeather = () =>{
-        fetch(
+    const fetchCurrentWeather = () => {
+        return fetch(
             'https://opendata.cwb.gov.tw/api/v1/rest/datastore/O-A0001-001?Authorization=CWB-06D73B14-72A5-4363-B448-78EB292C33F5&locationName=%E9%BE%8D%E4%BA%95'
         )
-            .then((response) => response.json())
-            .then((data) => {
-                    const locationData = data.records.location[0];
+        .then((response) => { console.log(response); return response.json() })
+        .then((data) => {
 
-                    const weatherElements = locationData.weatherElement.reduce(
-                        (neededElements, item) => {
-                            if (['WDSD', 'TEMP', 'HUMD'].includes(item.elementName)) {
-                                neededElements[item.elementName] = item.elementValue;
-                            }
-                            return neededElements;
-                        },
-                        {}
-                    );
+            const locationData = data.records.location[0];
 
-                setWeatherElement((prevState) => ({
-                        ...prevState,
-                        observationTime: locationData.time.obsTime,
-                        locationName: locationData.locationName,
-                        description: '雨天',
-                        temperature: weatherElements.TEMP,
-                        windSpeed: weatherElements.WDSD,
-                        humid: weatherElements.HUMD,
-                    }));              
-                });
-};
+            const weatherElements = locationData.weatherElement.reduce(
+                (neededElements, item) => {
+                        if (['WDSD', 'TEMP', 'HUMD'].includes(item.elementName)) {
+                            neededElements[item.elementName] = item.elementValue;
+                        }
+                        return neededElements;
+                },
+                {}
+            );
+
+            return{
+                observationTime: locationData.time.obsTime,
+                locationName: locationData.locationName,
+                description: weatherElements.TEMP,
+                temperature: weatherElements.TEMP,
+                windSpeed: weatherElements.WDSD,
+                humid: weatherElements.HUMD,
+            };              
+        });
+    };
 
     const fetchWeatherForecast = () => {
-        fetch(
+        return fetch(
             'https://opendata.cwb.gov.tw/api/v1/rest/datastore/F-C0032-001?Authorization=CWB-06D73B14-72A5-4363-B448-78EB292C33F5&locationName=%E8%87%BA%E4%B8%AD%E5%B8%82'
+
         )
             .then((response) => response.json())
             .then((data) => {
@@ -167,19 +181,19 @@ const WeatherApp = () => {
                     },
                     {}
                 );
-                setWeatherElement((prevState) => ({
-                    ...prevState,
+                return{
                     description: weatherElements.Wx.parameterName,
                     weatherCode: weatherElements.Wx.parameterValue,
                     rainPossibility: weatherElements.PoP.parameterName,
                     comfortability: weatherElements.CI.parameterName,
-                }));
+                };
             });
     }
 
 
     return (
         <Container>
+
             {console.log('render')}
             <WeatherCard>
                 <Location>{weatherElement.locationName}</Location>
