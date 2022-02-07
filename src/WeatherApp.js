@@ -11,6 +11,7 @@ const Container = styled.div`
   display: flex;
   align-items: center;
   justify-content: center;
+  box-sizing:Border-box;
 `;
 
 const WeatherCard = styled.div`
@@ -123,7 +124,6 @@ const WeatherApp = () => {
                 fetchCurrentWeather(),
                 fetchWeatherForecast(),
             ]);
-
             setWeatherElement({
                 ...currentWeather,
                 ...weatherForecast,
@@ -190,10 +190,19 @@ const WeatherApp = () => {
             });
     }
 
+    const handleClick = async () => {
+        const [currentWeather, weatherForecast] = await Promise.all([
+            fetchCurrentWeather(),
+            fetchWeatherForecast(),
+        ]);
+        setWeatherElement({
+            ...currentWeather,
+            ...weatherForecast,
+        });
+    };
 
     return (
         <Container>
-
             {console.log('render')}
             <WeatherCard>
                 <Location>{weatherElement.locationName}</Location>
@@ -204,21 +213,17 @@ const WeatherApp = () => {
                     <Temperature>
                         {Math.round(weatherElement.temperature)} < Celsius >°C</Celsius>
                     </Temperature>
-                    <Cloudy/>
+                <Cloudy/>
                 </CurrentWeather>
                 <AirFlow>
                     <AirFlowIcon />
                     {weatherElement.windSpeed} m/h
-                    </AirFlow>
+                </AirFlow>
                 <Rain>
                     <RainIcon />
-                    {Math.round(weatherElement.humid)} %
-                    </Rain>
-                <Redo onClick={() => {
-                    fetchCurrentWeather();
-                    fetchWeatherForecast();
-                    }}
-                >
+                    {Math.round(weatherElement.rainPossibility)} %
+                </Rain>
+                <Redo onClick={handleClick}>
                     最後觀測時間:
                     {
                         new Intl.DateTimeFormat('zh-TW', {
