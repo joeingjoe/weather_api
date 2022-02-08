@@ -1,9 +1,9 @@
-﻿import React, {useState , useEffect} from 'react';
+﻿import React, {useState , useEffect ,useCallback} from 'react';
 import styled from '@emotion/styled';
-import { ReactComponent as CloudyIcon } from './images/cloudy.svg'
 import { ReactComponent as AirFlowIcon } from './images/airFlow.svg';
 import { ReactComponent as RainIcon } from './images/rain.svg';
 import { ReactComponent as RedoIcon } from './images/redo.svg';
+import WeatherIcon from './WeatherIcon';
 
 const Container = styled.div`
   background-color: #ededed;
@@ -81,9 +81,6 @@ const Rain = styled.div`
     margin-right: 30px;
 `;
 
-const Cloudy = styled(CloudyIcon)`
-    flex-basis: 30%;
-`
 
 const Redo = styled.div`
     position: absolute;
@@ -117,22 +114,6 @@ const WeatherApp = () => {
 
     });
 
-    useEffect(() => {
-
-        const fetchData = async () => {
-            const [currentWeather,weatherForecast] = await Promise.all([
-                fetchCurrentWeather(),
-                fetchWeatherForecast(),
-            ]);
-            setWeatherElement({
-                ...currentWeather,
-                ...weatherForecast,
-            });
-        };
-
-        fetchData();
-
-    },[]);
 
     const fetchCurrentWeather = () => {
         return fetch(
@@ -190,16 +171,27 @@ const WeatherApp = () => {
             });
     }
 
-    const handleClick = async () => {
-        const [currentWeather, weatherForecast] = await Promise.all([
-            fetchCurrentWeather(),
-            fetchWeatherForecast(),
-        ]);
-        setWeatherElement({
-            ...currentWeather,
-            ...weatherForecast,
-        });
-    };
+    const fetchData = useCallback(() => {
+
+        const fetchingData = async () => { 
+        
+            const [currentWeather, weatherForecast] = await Promise.all([
+                fetchCurrentWeather(),
+                fetchWeatherForecast(),
+            ]);                
+            setWeatherElement({
+                ...currentWeather,        
+                ...weatherForecast,        
+            });        
+        };
+        fetchingData();
+    },[])
+
+
+    useEffect(() => {
+        fetchData();
+
+    }, [fetchData]);
 
     return (
         <Container>
@@ -213,7 +205,7 @@ const WeatherApp = () => {
                     <Temperature>
                         {Math.round(weatherElement.temperature)} < Celsius >°C</Celsius>
                     </Temperature>
-                <Cloudy/>
+                <WeatherIcon/>
                 </CurrentWeather>
                 <AirFlow>
                     <AirFlowIcon />
@@ -223,7 +215,7 @@ const WeatherApp = () => {
                     <RainIcon />
                     {Math.round(weatherElement.rainPossibility)} %
                 </Rain>
-                <Redo onClick={handleClick}>
+                <Redo onClick={fetchData}>
                     最後觀測時間:
                     {
                         new Intl.DateTimeFormat('zh-TW', {
