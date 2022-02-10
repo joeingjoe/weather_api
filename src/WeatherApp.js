@@ -99,82 +99,79 @@ const Redo = styled.div`
     }
 `;  
 
+const fetchCurrentWeather = () => {
+    return fetch(
+        'https://opendata.cwb.gov.tw/api/v1/rest/datastore/O-A0001-001?Authorization=CWB-06D73B14-72A5-4363-B448-78EB292C33F5&locationName=%E9%BE%8D%E4%BA%95'
+    )
+        .then((response) => response.json())
+        .then((data) => {
+            const locationData = data.records.location[0];
+
+            const weatherElements = locationData.weatherElement.reduce(
+                (neededElements, item) => {
+                    if (['WDSD', 'TEMP', 'HUMD'].includes(item.elementName)) {
+                        neededElements[item.elementName] = item.elementValue;
+                    }
+                    return neededElements;
+                },
+                {}
+            );
+
+            return {
+                observationTime: locationData.time.obsTime,
+                locationName: locationData.locationName,
+                temperature: weatherElements.TEMP,
+                windSpeed: weatherElements.WDSD,
+                humid: weatherElements.HUMD,
+            };
+        });
+};
+
+const fetchWeatherForecast = () => {
+    return fetch(
+        'https://opendata.cwb.gov.tw/api/v1/rest/datastore/F-C0032-001?Authorization=CWB-06D73B14-72A5-4363-B448-78EB292C33F5&locationName=%E8%87%BA%E4%B8%AD%E5%B8%82'
+    )
+        .then((response) => response.json())
+        .then((data) => {
+            const locationData = data.records.location[0];
+            const weatherElements = locationData.weatherElement.reduce(
+                (neededElements, item) => {
+                    if (['Wx', 'PoP', 'CI'].includes(item.elementName)) {
+                        neededElements[item.elementName] = item.time[0].parameter;
+                    }
+                    return neededElements;
+                },
+                {}
+            );
+            return {
+                description: weatherElements.Wx.parameterName,
+                weatherCode: weatherElements.Wx.parameterValue,
+                rainPossibility: weatherElements.PoP.parameterName,
+                comfortability: weatherElements.CI.parameterName,
+            };
+        });
+}
+
 const WeatherApp = () => {
     console.log('--- invoke function compont ---');
     const [weatherElement, setWeatherElement] = useState({
         observationTime: new Date(),
         locationName: '',
         humid: 0,
-        description: '',
         temperature: 0,
         windSpeed: 0,
-        humid: 0.88,
+        description: '',
+        weatherCode: 0,
         rainPossibility: 0,
         comfortability: '',
-
     });
 
 
-    const fetchCurrentWeather = () => {
-        return fetch(
-            'https://opendata.cwb.gov.tw/api/v1/rest/datastore/O-A0001-001?Authorization=CWB-06D73B14-72A5-4363-B448-78EB292C33F5&locationName=%E9%BE%8D%E4%BA%95'
-        )
-        .then((response) => { console.log(response); return response.json() })
-        .then((data) => {
 
-            const locationData = data.records.location[0];
-
-            const weatherElements = locationData.weatherElement.reduce(
-                (neededElements, item) => {
-                        if (['WDSD', 'TEMP', 'HUMD'].includes(item.elementName)) {
-                            neededElements[item.elementName] = item.elementValue;
-                        }
-                        return neededElements;
-                },
-                {}
-            );
-
-            return{
-                observationTime: locationData.time.obsTime,
-                locationName: locationData.locationName,
-                description: weatherElements.TEMP,
-                temperature: weatherElements.TEMP,
-                windSpeed: weatherElements.WDSD,
-                humid: weatherElements.HUMD,
-            };              
-        });
-    };
-
-    const fetchWeatherForecast = () => {
-        return fetch(
-            'https://opendata.cwb.gov.tw/api/v1/rest/datastore/F-C0032-001?Authorization=CWB-06D73B14-72A5-4363-B448-78EB292C33F5&locationName=%E8%87%BA%E4%B8%AD%E5%B8%82'
-
-        )
-            .then((response) => response.json())
-            .then((data) => {
-                const locationData = data.records.location[0];
-                const weatherElements = locationData.weatherElement.reduce(
-                    (neededElements, item) => {
-                        if (['Wx', 'PoP', 'CI'].includes(item.elementName)) {
-                            neededElements[item.elementName] = item.time[0].parameter;
-                        }
-                        return neededElements;
-                    },
-                    {}
-                );
-                return{
-                    description: weatherElements.Wx.parameterName,
-                    weatherCode: weatherElements.Wx.parameterValue,
-                    rainPossibility: weatherElements.PoP.parameterName,
-                    comfortability: weatherElements.CI.parameterName,
-                };
-            });
-    }
 
     const fetchData = useCallback(() => {
-
         const fetchingData = async () => { 
-        
+
             const [currentWeather, weatherForecast] = await Promise.all([
                 fetchCurrentWeather(),
                 fetchWeatherForecast(),
@@ -205,7 +202,7 @@ const WeatherApp = () => {
                     <Temperature>
                         {Math.round(weatherElement.temperature)} < Celsius >°C</Celsius>
                     </Temperature>
-                <WeatherIcon/>
+                    <WeatherIcon currentWeatherCode={weatherElement.weatherCode} moment="night" />
                 </CurrentWeather>
                 <AirFlow>
                     <AirFlowIcon />
