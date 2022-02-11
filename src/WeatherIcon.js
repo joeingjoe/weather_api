@@ -1,4 +1,4 @@
-import React, { useState , useEffect , useMemo } from 'react';
+import React, { useState , useEffect ,useMemo} from 'react';
 import styled from '@emotion/styled';
 import { ReactComponent as DayThunderstorm } from './images/day-thunderstorm.svg';
 import { ReactComponent as DayClear } from './images/day-clear.svg';
@@ -65,6 +65,8 @@ const weatherCode2Type = (weatherCode) => {
 
     return weatherType;
 };
+
+
 
 const WeatherIcon = ({ currentWeatherCode, moment }) => {
 

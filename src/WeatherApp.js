@@ -1,8 +1,10 @@
-﻿import React, {useState , useEffect ,useCallback} from 'react';
+﻿import React, {useState , useEffect ,useCallback , useMemo} from 'react';
 import styled from '@emotion/styled';
+import sunriseAndSunsetData from './sunrise-sunset.json';
 import { ReactComponent as AirFlowIcon } from './images/airFlow.svg';
 import { ReactComponent as RainIcon } from './images/rain.svg';
 import { ReactComponent as RedoIcon } from './images/redo.svg';
+import { ReactComponent as LoadingIcon } from './images/loading.svg';
 import WeatherIcon from './WeatherIcon';
 
 const Container = styled.div`
@@ -99,9 +101,43 @@ const Redo = styled.div`
     }
 `;  
 
+const getMoment = (locationName) => {
+    const location = sunriseAndSunsetData.find(
+        (data) => data.locationName === locationName
+    );
+    if (!location) return null;
+
+    const now = new Date();
+
+    const nowDate = Intl.DateTimeFormat('zh-TW', {
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+    })
+        .format(now)
+        .replace(/\//g, '-');
+
+    const locationDate =
+        location.time && location.time.fine((time) => time.dateTime === nowDate);
+
+    const sunriseTimestamp = new Date(
+        `${locationDate.dataTime} ${locationDate.sunrise}`
+    ).getTime();
+    const sunsetTimestamp = new Date(
+        `${locationDate.dataTime} ${locationDate.sunset}`
+    ).getTime();
+    const nowTimeStamp = now.getTime();
+
+    return sunriseTimestamp <= nowTimeStamp && nowTimeStamp <= sunsetTimestamp
+        ? 'day'
+        : 'night';
+};
+
+
+
 const fetchCurrentWeather = () => {
     return fetch(
-        'https://opendata.cwb.gov.tw/api/v1/rest/datastore/O-A0001-001?Authorization=CWB-06D73B14-72A5-4363-B448-78EB292C33F5&locationName=%E9%BE%8D%E4%BA%95'
+        'https://opendata.cwb.gov.tw/api/v1/rest/datastore/O-A0003-001?Authorization=CWB-06D73B14-72A5-4363-B448-78EB292C33F5&locationName=%E8%87%BA%E4%B8%AD'
     )
         .then((response) => response.json())
         .then((data) => {
@@ -164,6 +200,7 @@ const WeatherApp = () => {
         weatherCode: 0,
         rainPossibility: 0,
         comfortability: '',
+        isLoading: true,
     });
 
 
@@ -171,28 +208,35 @@ const WeatherApp = () => {
 
     const fetchData = useCallback(() => {
         const fetchingData = async () => { 
-
             const [currentWeather, weatherForecast] = await Promise.all([
                 fetchCurrentWeather(),
                 fetchWeatherForecast(),
             ]);                
             setWeatherElement({
                 ...currentWeather,        
-                ...weatherForecast,        
-            });        
+                ...weatherForecast,
+                isLoading: false,
+            });
         };
+        setWeatherElement((prevState) => ({
+            ...prevState,
+            isLoading: true,
+        }));
         fetchingData();
     },[])
-
 
     useEffect(() => {
         fetchData();
 
     }, [fetchData]);
 
+    const moment = useMemo(() => getMoment(weatherElement.locationName), [
+        weatherElement.locationName,
+    ]);
+
     return (
         <Container>
-            {console.log('render')}
+            {console.log(weatherElement.isLoading)}
             <WeatherCard>
                 <Location>{weatherElement.locationName}</Location>
                 <Description>
@@ -202,7 +246,10 @@ const WeatherApp = () => {
                     <Temperature>
                         {Math.round(weatherElement.temperature)} < Celsius >°C</Celsius>
                     </Temperature>
-                    <WeatherIcon currentWeatherCode={weatherElement.weatherCode} moment="night" />
+                    <WeatherIcon
+                        currentWeatherCode={weatherElement.weatherCode}
+                        moment={moment || 'day'}
+                    />
                 </CurrentWeather>
                 <AirFlow>
                     <AirFlowIcon />
@@ -214,13 +261,11 @@ const WeatherApp = () => {
                 </Rain>
                 <Redo onClick={fetchData}>
                     最後觀測時間:
-                    {
-                        new Intl.DateTimeFormat('zh-TW', {
+                    {new Intl.DateTimeFormat('zh-TW', {
                         hour: 'numeric',
                         minute: 'numeric',
-                        }).format(new Date(weatherElement.observationTime))}{' '
-                    }
-                    <RedoIcon />
+                    }).format(new Date(weatherElement.observationTime))}{' '}
+                    {weatherElement.isLoading ? <LoadingIcon /> : <RedoIcon />}
                 </Redo>
             </WeatherCard>
         </Container>
