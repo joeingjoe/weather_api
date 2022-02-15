@@ -2,9 +2,8 @@
   "ExpandedNodes": [
     "",
     "\\public",
-    "\\src",
-    "\\src\\images"
+    "\\src"
   ],
-  "SelectedNode": "\\src\\WeatherIcon.js",
+  "SelectedNode": "\\.eslintrc.js",
   "PreviewInSolutionExplorer": false
 }

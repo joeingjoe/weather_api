@@ -105,8 +105,8 @@ const getMoment = (locationName) => {
     const location = sunriseAndSunsetData.find(
         (data) => data.locationName === locationName
     );
+    console.log('地名', locationName);
     if (!location) return null;
-
     const now = new Date();
 
     const nowDate = Intl.DateTimeFormat('zh-TW', {
@@ -118,7 +118,7 @@ const getMoment = (locationName) => {
         .replace(/\//g, '-');
 
     const locationDate =
-        location.time && location.time.fine((time) => time.dateTime === nowDate);
+        location.time && location.time.find((time) => time.dataTime === nowDate);
 
     const sunriseTimestamp = new Date(
         `${locationDate.dataTime} ${locationDate.sunrise}`
